@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import torch
 import torch.nn as nn
 
-from ego_joint_object_slot.configs.paths import EGOJointPaths
+from ego_det_v2.paths import EGOJointPaths
 
 from ..configs.config import EgoDetV2Config
 from .backbone import FakeBackbone, OverLoCKFPNBackbone

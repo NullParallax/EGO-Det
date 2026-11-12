@@ -8,7 +8,7 @@ from typing import Optional, Sequence
 import torch
 from torch.utils.data import DataLoader
 
-from ego_joint_object_slot.configs.paths import EGOJointPaths
+from ego_det_v2.paths import EGOJointPaths
 
 from ..configs.config import EgoDetV2Config
 from ..data.coco_dataset import build_coco_dataset

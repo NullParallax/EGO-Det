@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ego_joint_object_slot.configs.paths import EGOJointPaths
-from ego_joint_object_slot.utils.import_utils import setup_project_paths
+from ego_det_v2.paths import EGOJointPaths
+from ego_det_v2.import_utils import setup_project_paths
 
 from ..configs.config import EgoDetV2Config
 

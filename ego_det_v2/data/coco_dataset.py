@@ -10,7 +10,7 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import functional as TF
 
-from ego_joint_object_slot.configs.paths import EGOJointPaths
+from ego_det_v2.paths import EGOJointPaths
 
 from ..configs.config import EgoDetV2Config
 from ..models.box_ops import box_xyxy_to_cxcywh
