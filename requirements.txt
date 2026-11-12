@@ -1,6 +1,7 @@
-# EGO-Det V2 directly imported runtime packages (excluding torch/torchvision).
-# Install PyTorch 2.1.2 + torchvision 0.16.2 from the matching official cu118 index FIRST.
-# These are proposed pins, not a tested lockfile.
+# Pinned runtime packages for the CUDA 11.8 EGO-Det staging environment.
+# Install the matching CUDA-enabled PyTorch wheel first (see docs/ENVIRONMENT.md).
+torch==2.1.2
+torchvision==0.16.2
 numpy==1.26.4
 scipy==1.13.1
 Pillow==10.4.0

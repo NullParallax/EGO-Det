@@ -1,39 +1,32 @@
 # Evidence and release gates for EGO-Det V2
 
-## Evidence directly cross-checked
+## Historical evidence (not a new COCO evaluation)
 
-- Original `eval_history.jsonl`: 12 full COCO evaluations + 35 `quick500` evaluations. The last full record is epoch 12 / optimizer step 89037.
-- Second full-only evaluation record: byte-level equivalent JSON object to the original final full record.
-- `ablation_manifest.json`: `source_run=outputs/ego_det_v2/train_mod10b_batch8_long`, `source_checkpoint=epoch_12.pth`, `epoch=12`, no EMA, full AP=0.4526892183243793.
-- `all_interventions.csv`: `full` control AP=45.26892183243793 (%), consistent with above.
-- `intervention_results.json`: inference-time tests from the same epoch-12 raw weights, **not independently retrained variants**.
-- Original `train_log.jsonl`: 7319 records, with one optimizer step rewind during epoch index 3, compatible with resume/replayed logging; train run nonetheless reached 12 full evaluations. Logs alone do not prove checkpoint bytes.
+- The recorded epoch-12 final model used the raw (`model`), not EMA, state.
+- Historical full COCO val2017: AP 45.2689%, AP50 63.3310%, AP75 49.4821%.
+- The published run used 12 epochs, batch size 8, gradient accumulation 2, 300 object slots, and 48 evidence proposals per slot.
+- `configs/paper_epoch12_recorded.json` preserves the recorded training configuration for reference. Current class defaults differ in some training fields.
 
-## Unresolved items
+## Runtime checks completed on WSL2 / RTX 2080 Ti
 
-1. Verify actual file `epoch_12.pth` exists, its size (manifest: 562663950 bytes), SHA256, schema and `state_dict` keys. The source archive did not include this file.
-2. **Current source is not cryptographically tied to the original checkpoint.** Present source has fields `freeze_backbone` and `full_eval_last_epoch_only` absent from the historical manifest, suggesting code may have evolved after the original run. Determine whether these fields alter loaded model structure, and test strict checkpoint loading.
-3. Install the dependencies in a clean environment; execute CPU contracts, strict state load, subset inference and full val2017 evaluation (target 45.269 AP).
-4. Review license and attribution for `stage1/overlock_official_nofrills.py` and pretrained OverLoCK weights. No license has been assumed or attached.
-5. Validate reproducible train settings with actual launcher; the current `EgoDetV2Config` *defaults* are not the historical run (`batch_size=4` vs 8; `grad_accum_steps=4` vs 2; 7 short-side scales vs 5; `efficiency_mode=reference` vs optimized).
-6. Audit code/history for secrets, machine paths, personal information and copyrighted third-party assets. The uploaded original ZIP contained an `.env` with live-looking API keys; it is **excluded** from this package. Rotate any real keys and never publish the original archive.
-7. Confirm current publisher/author permissions and double-anonymous review restrictions, if applicable, before publicizing an official implementation.
+- Dedicated Python 3.11 `egodet` environment with PyTorch 2.1.2+cu118 and NumPy 1.26.4 installed.
+- Final trusted `epoch_12.pth` raw model loaded with `strict=True` using the current model implementation.
+- GPU forward ran without NaN/Inf; output shapes were boxes `[1,300,4]`, logits `[1,300,80]`, scores `[1,300,80]`.
+- A real single-image demonstration completed successfully; this is not an AP measurement.
+- Source-only compatibility tests and Python compilation have passed in the staging workflow.
 
-## Verification commands
+## Remaining before a public academic release
+
+1. Run a small COCO validation subset, then the complete val2017 dataset with the repository evaluator; report the *newly measured* metrics separately from historical records.
+2. Confirm the reproducible train command and actual resource requirements; GPU hardware differs from the original training environment.
+3. Review the retained third-party OverLoCK source, pretrained-weight redistribution permissions, and upstream license notices (`docs/THIRD_PARTY.md`).
+4. Review the entire source and Git history for private credentials and machine paths before switching the repository to Public.
+5. Obtain applicable author approval and check double-anonymous submission restrictions.
+
+## Recommended evaluation command
 
 ```bash
-python -m compileall -q ego_det_v2 stage1 ego_joint_object_slot
-python -m ego_det_v2.launch.launch_contracts_cpu --fake-backbone
-python tools/check_checkpoint_metadata.py checkpoints/epoch_12.pth
 bash scripts/evaluate_paper_epoch12.sh
 ```
 
-Local validation: `compileall` passed; training/eval CLI help passed; ablation and inference-intervention tests passed. CPU fake-backbone contracts passed 37 checks then stopped when `pycocotools` was missing. GPU, checkpoint strict loading and full COCO AP have not been performed.
-
-## Historical method configuration
-
-- 300 slots, 3 refinement rounds, 48 local proposals per slot.
-- Proposal bank: 1000 train / 1500 eval; FPN P3–P6.
-- Diversity seeding, semantic global attention and regional retrieval, slot competition.
-- Boundary readout with dustbin gating and bounded residual correction.
-- AdamW: base LR 1e-4, backbone LR 1e-5, stem LR 1e-6; 12 epochs, drop at 11; batch 8, accumulation 2; bf16 AMP; seed 3407.
+On RTX 2080 Ti, BF16 is unavailable and the evaluator selects FP16 for CUDA AMP. Report this difference when comparing with recorded BF16 results.

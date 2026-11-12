@@ -1,39 +1,59 @@
-# EGO-Det: Evidence-Guided Object Detection
+# EGO-Det — Evidence-Guided Object Detection
 
-> **REPRODUCIBILITY STAGING — NOT READY FOR PUBLIC RELEASE.** This is a private, preliminary source snapshot based on the EGO-Det V2 code tree and the historical experiment logs. It has not yet been validated against the published checkpoint on COCO val2017. Third-party redistribution permissions must be reviewed before publication.
+> **Private reproducibility staging.** The current source successfully loads the final non-EMA checkpoint and completes a CUDA forward pass, but the full COCO val2017 result has **not yet been reproduced** with this repository. Do not treat this as a finalized public release.
 
-EGO-Det is an object-centric detection framework using a class-agnostic geometry proposal bank, semantic object-slot formation, slot competition, and slot-conditioned geometry readout.
+EGO-Det is an object-centric detection framework that uses a class-agnostic geometry proposal bank, semantic object-slot formation, slot competition, and slot-conditioned geometry readout.
 
-## Paper-run metrics (from historical records, not a new rerun)
+## Recorded paper result
 
-| Split | AP | AP50 | AP75 | APs | APm | APl |
+The values below come from historical experiment records, **not a new evaluation** of the GitHub source.
+
+| Dataset / checkpoint | AP | AP50 | AP75 | APs | APm | APl |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| COCO val2017, epoch 12, **raw model** | 45.269 | 63.331 | 49.482 | 26.432 | 48.313 | 62.514 |
+| COCO val2017, epoch 12, **raw weights** | 45.269 | 63.331 | 49.482 | 26.432 | 48.313 | 62.514 |
 
-Recorded run ID: `ego_det_v2/train_mod10b_batch8_long`. Checkpoint: `epoch_12.pth` (562,663,950 bytes according to experiment manifest; SHA256 must still be independently verified).
+Recorded run: `ego_det_v2/train_mod10b_batch8_long`. The evaluated checkpoint is `epoch_12.pth` without EMA.
 
-## Repository structure
+## Installation
 
-- `ego_det_v2/`: original end-to-end V2 models, losses, datasets, training and evaluation, tests, and ablation/intervention runners.
-- `stage1/`: OverLoCK backbone adapter and borrowed upstream implementation. **Upstream license audit required.**
-- `ego_joint_object_slot/configs/paths.py`, `utils/import_utils.py`: compatibility helpers that the V2 code imports. The hard-coded machine root was replaced with repository-relative defaults in this staging copy.
-- `configs/paper_epoch12_recorded.json`: preserved training parameters from the experiment manifest; absolute output path is sanitized and is not the original config fingerprint.
+Recommended: Python 3.11, PyTorch 2.1.2 with CUDA 11.8. The CUDA wheel should be installed explicitly **before** the project's requirements.
 
-## Install and evaluation
+```bash
+conda env create -f environment.yml
+conda activate egodet
+python -m pip install torch==2.1.2 torchvision==0.16.2 \
+  --index-url https://download.pytorch.org/whl/cu118
+python -m pip install -r requirements.txt
+python -m pip install -e . --no-deps
+```
 
-**Minimal clean environment (not yet installed/tested):** see [Environment setup](docs/ENVIRONMENT.md). For local Git history, privacy, and repository naming, see [Git and naming](docs/GIT_SETUP_AND_NAMING.md) and [Naming plan](docs/NAMING_MIGRATION_PLAN.md).
+The last command enables `egodet` imports from any working directory. See [environment notes](docs/ENVIRONMENT.md) for WSL and GPU-specific details. No MMCV, MMDetection, or custom CUDA compilation is required for the initial detector workflow.
 
+## Weights and data
 
-Paper environment: PyTorch 2.1.2, CUDA 11.8; OverLoCK-T initialized with ImageNet-1K pretrained weights. Other dependencies are listed in `requirements.txt` but not fully version-locked.
-
-Prepare your model and data in the following locations, or use explicit CLI parameters:
+Store local assets under these **Git-ignored** directories:
 
 ```text
-weights/overlock/overlock_t_in1k_224.pth
-data/coco/images/{train2017,val2017}/...
-data/coco/raw/annotations/{instances_train2017.json,instances_val2017.json}
 checkpoints/epoch_12.pth
+weights/overlock/overlock_t_in1k_224.pth
+data/coco/images/val2017/...
+data/coco/raw/annotations/instances_val2017.json
 ```
+
+Do not commit model weights, the COCO dataset, or private experiment data.
+
+## Single-image demonstration
+
+```bash
+python -m egodet.infer \
+  --image /absolute/path/to/photo.jpg \
+  --output outputs/demo_detection.jpg \
+  --short-side 384 --max-size 640 --score-thr 0.3
+```
+
+This diagnostic visualizer labels **contiguous class indices (0–79)**, not COCO category names; it does not add NMS or define a new evaluation protocol. No sample photograph is distributed. Use `--help` for options.
+
+## COCO evaluation
 
 ```bash
 python -m ego_det_v2.launch.launch_eval_ego_det_v2 \
@@ -44,14 +64,24 @@ python -m ego_det_v2.launch.launch_eval_ego_det_v2 \
   --output-json outputs/paper_epoch12_eval.json
 ```
 
-The CLI defaults to **raw model**; do not pass `--use-ema` when reproducing the 45.269 AP run.
+The default is the **raw model**; do not pass `--use-ema` when reproducing the recorded epoch-12 result. The official evaluation retains its original postprocessing. A recorded-configuration training command is in `scripts/reproduce_paper_train.sh`.
 
-A sample training invocation with historical parameter overrides is in `scripts/reproduce_paper_train.sh`. See `docs/VERIFICATION_AND_RELEASE_GATES.md` before running or publishing.
+## Code layout
 
-## Citation and license
+- `egodet/`: stable public aliases, paths, and the diagnostic image-inference command.
+- `ego_det_v2/`: original checkpoint-compatible detector, training, evaluation, ablations, and inference interventions.
+- `stage1/`: compatible OverLoCK import path and the adapted upstream backbone implementation.
+- `ego_joint_object_slot/`: deprecated path compatibility, retained for existing imports.
+- `tests/`: dependency-light repository and compatibility checks; deeper contracts remain under `ego_det_v2/tests/`.
+- `archive/`: historical tests whose implementation is unavailable; not part of active test discovery.
+- `third_party/overlock/`: upstream attribution and license text.
 
-The paper citation, BibTeX and license are intentionally not finalized in this staging copy; check submission status, author approval and third-party licenses first.
+See [development guide](docs/DEVELOPMENT.md), [third-party attribution](docs/THIRD_PARTY.md), and [release gates](docs/VERIFICATION_AND_RELEASE_GATES.md).
 
-## Staging validation status
+## Current verification status
 
-Static compile/import and ablation/inference-intervention contracts passed. CPU contracts are partially passed (37 checks), blocked by missing `pycocotools` in the assembly environment. Full checkpoint load and COCO AP reproduction remain pending.
+A local WSL session using an RTX 2080 Ti has successfully created the `egodet` environment, strictly loaded `epoch_12.pth` into `EgoDet`, completed a finite CUDA forward pass, and produced a single-image diagnostic output. **COCO subset and full-val AP evaluation remain pending.** Historical results must not be represented as freshly reproduced metrics.
+
+## License and citation
+
+The EGO-Det project-wide license and paper citation are not finalized. Third-party OverLoCK source is separately attributed; check redistribution permissions and research-review restrictions before public release.

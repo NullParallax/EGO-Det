@@ -16,6 +16,12 @@ __pycache__/
 .venv/
 venv/
 
+# Build outputs
+/build/
+/dist/
+/.coverage
+/htmlcov/
+
 # Experiments and model weights
 /data/
 /outputs/
@@ -30,6 +36,12 @@ venv/
 *.ckpt
 *.safetensors
 /events.out.tfevents.*
+
+# Local one-off demo inputs; no global image ignore rule
+/test.jpg
+/test.jpeg
+/test.png
+/demo_detection.jpg
 
 # IDE / OS
 .idea/

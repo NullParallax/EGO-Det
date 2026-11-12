@@ -20,12 +20,14 @@
   "verified_now": [
     "eval_history original end record matches formal ablation eval record",
     "manifest metrics match original full eval record",
-    "intervention full control matches AP"
+    "intervention full control matches AP",
+    "2026-11-12: clean egodet environment successfully installed on WSL2 RTX 2080 Ti",
+    "2026-11-12: epoch_12.pth raw model strictly loaded into current detector",
+    "2026-11-12: CUDA forward and single-image diagnostic inference completed"
   ],
   "pending": [
-    "actual checkpoint SHA256",
-    "strict state_dict loading",
-    "full COCO rerun",
-    "third-party licensing"
+    "COCO val2017 rerun with the current GitHub source",
+    "final project-wide license and paper citation",
+    "final third-party redistribution and author/review permissions"
   ]
 }

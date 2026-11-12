@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ego-det"
+version = "0.1.0.dev0"
+description = "Evidence-Guided Object Detection (research reproducibility staging)"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dynamic = ["dependencies"]
+
+[project.urls]
+Repository = "https://github.com/NullParallax/EGO-Det"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["egodet*", "ego_det_v2*", "ego_joint_object_slot*", "stage1*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
