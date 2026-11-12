@@ -33,6 +33,7 @@ def make_loader(
     training_override: Optional[bool] = None,
     shuffle: bool = False,
     batch_size: Optional[int] = None,
+    num_workers: Optional[int] = None,
 ) -> tuple[DataLoader, object]:
     dataset = build_coco_dataset(
         split,
@@ -43,13 +44,19 @@ def make_loader(
         image_ids=image_ids,
         training_override=training_override,
     )
+    actual_batch_size = int(config.batch_size if batch_size is None else batch_size)
+    actual_workers = int(config.num_workers if num_workers is None else num_workers)
+    if actual_batch_size < 1:
+        raise ValueError("batch_size must be >= 1")
+    if actual_workers < 0:
+        raise ValueError("num_workers must be >= 0")
     loader = DataLoader(
         dataset,
-        batch_size=int(batch_size or config.batch_size),
+        batch_size=actual_batch_size,
         shuffle=bool(shuffle),
-        num_workers=int(config.num_workers),
+        num_workers=actual_workers,
         pin_memory=torch.cuda.is_available(),
-        persistent_workers=int(config.num_workers) > 0,
+        persistent_workers=actual_workers > 0,
         collate_fn=collate_detection_batch,
         drop_last=False,
     )

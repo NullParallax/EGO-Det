@@ -1,9 +1,0 @@
-# Minimal Conda bootstrap for EGO-Det V2 (paper-compatible environment).
-# The PyTorch CUDA wheel is installed separately to avoid mixing CUDA stacks.
-# This is a proposed specification; installation and model evaluation remain unverified.
-name: egodet
-channels:
-  - conda-forge
-dependencies:
-  - python=3.11
-  - pip

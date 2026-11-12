@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from stage1.overlock_official_nofrills import overlock_t
+from .overlock.overlock_official_nofrills import overlock_t
 
 
 class OverLoCKMultiScaleAdapterV6(nn.Module):

@@ -1,2 +1,0 @@
-# Optional tooling; not required for EGO-Det training or evaluation.
-pytest==8.3.5

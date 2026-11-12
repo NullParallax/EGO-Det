@@ -20,10 +20,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-annotations")
     parser.add_argument("--image-root")
     parser.add_argument("--subset-size", type=int, default=0)
+    parser.add_argument("--batch-size", type=int, default=None, help="DataLoader batch size (not model config)")
+    parser.add_argument("--num-workers", type=int, default=None, help="DataLoader workers")
     parser.add_argument("--output-json")
     parser.add_argument("--device")
     parser.add_argument("--no-progress", action="store_true")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.batch_size is not None and args.batch_size < 1:
+        parser.error("--batch-size must be >= 1")
+    if args.num_workers is not None and args.num_workers < 0:
+        parser.error("--num-workers must be >= 0")
+    return args
 
 
 def main() -> None:
@@ -40,7 +47,7 @@ def main() -> None:
     state = checkpoint.get("ema") if args.use_ema else checkpoint.get("model")
     if state is None:
         raise KeyError("requested model state is absent from checkpoint")
-    model.load_state_dict(state)
+    model.load_state_dict(state, strict=True)
     model.to(device)
     criterion = EgoDetV2Criterion(config)
     loader, dataset = make_loader(
@@ -50,6 +57,8 @@ def main() -> None:
         annotation_file=args.val_annotations,
         image_root=args.image_root,
         shuffle=False,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
     )
     metrics = evaluate(
         model,

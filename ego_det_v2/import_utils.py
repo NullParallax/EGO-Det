@@ -10,7 +10,7 @@ DEFAULT_PROJECT_ROOT = Path(os.environ.get("EGO_JOINT_PROJECT_ROOT", Path(__file
 
 
 def setup_project_paths(project_root: Optional[Path] = None, *, add_mmdet: bool = True) -> Path:
-    """Insert project paths needed by legacy stage1/stage2 modules.
+    """Insert project paths needed by research submodules.
 
     The default is the confirmed Linux project root. Local mirrors must be
     supplied explicitly through project_root or EGO_JOINT_PROJECT_ROOT.
