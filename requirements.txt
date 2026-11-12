@@ -1,0 +1,10 @@
+# Install matching PyTorch + CUDA toolkit separately (paper: PyTorch 2.1.2 / CUDA 11.8).
+# Package versions below are NOT a tested lockfile.
+numpy
+Pillow
+torchvision
+scipy
+tqdm
+pycocotools
+timm
+einops

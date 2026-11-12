@@ -1,0 +1,37 @@
+# Secrets and private configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_token*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+
+# Data and model artifacts (download separately)
+data/
+outputs/
+weights/
+checkpoints/
+*.pth
+*.pth.tar
+*.pt
+*.ckpt
+*.safetensors
+
+# Personal workspace
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local patch archives and Windows metadata
+*_patch.zip
+*:Zone.Identifier
