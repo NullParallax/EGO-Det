@@ -1,4 +1,4 @@
-# Secrets and private configuration
+# Credentials, private data, local config
 .env
 .env.*
 !.env.example
@@ -6,7 +6,7 @@
 *.key
 *_token*
 
-# Python
+# Python caches and local environments
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -14,24 +14,29 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 .venv/
+venv/
 
-# Data and model artifacts (download separately)
-data/
-outputs/
-weights/
-checkpoints/
+# Experiments and model weights
+/data/
+/outputs/
+/weights/
+/checkpoints/
+/logs/
+/runs/
+*.log
 *.pth
 *.pth.tar
 *.pt
 *.ckpt
 *.safetensors
+/events.out.tfevents.*
 
-# Personal workspace
+# IDE / OS
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
 
-# Local patch archives and Windows metadata
+# Local patches and Windows metadata
 *_patch.zip
 *:Zone.Identifier

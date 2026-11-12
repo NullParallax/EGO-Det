@@ -21,6 +21,9 @@ Recorded run ID: `ego_det_v2/train_mod10b_batch8_long`. Checkpoint: `epoch_12.pt
 
 ## Install and evaluation
 
+**Minimal clean environment (not yet installed/tested):** see [Environment setup](docs/ENVIRONMENT.md). For local Git history, privacy, and repository naming, see [Git and naming](docs/GIT_SETUP_AND_NAMING.md) and [Naming plan](docs/NAMING_MIGRATION_PLAN.md).
+
+
 Paper environment: PyTorch 2.1.2, CUDA 11.8; OverLoCK-T initialized with ImageNet-1K pretrained weights. Other dependencies are listed in `requirements.txt` but not fully version-locked.
 
 Prepare your model and data in the following locations, or use explicit CLI parameters:
