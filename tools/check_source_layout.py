@@ -13,8 +13,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOTS = ("ego_det_v2", "ego_joint_object_slot", "stage1")
+SOURCE_ROOTS = ("egodet", "ego_det_v2", "ego_joint_object_slot", "stage1")
 ENTRIES = {
+    "public_api": "egodet",
     "model": "ego_det_v2.models.ego_det_v2",
     "train": "ego_det_v2.launch.launch_train_ego_det_v2_e2e",
     "eval": "ego_det_v2.launch.launch_eval_ego_det_v2",
