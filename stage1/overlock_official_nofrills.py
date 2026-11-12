@@ -1,3 +1,9 @@
+# Local adaptation of the official OverLoCK implementation.
+# Upstream: https://github.com/LMMMEng/OverLoCK
+# License: Apache-2.0; see third_party/overlock/LICENSE.
+# This file contains project-specific compatibility adaptations; preserve
+# attribution and review differences against the upstream source on release.
+
 '''
 This is an official implementation of OverLoCK model proposed in the paper:
 https://arxiv.org/abs/2502.20087
@@ -1007,10 +1013,10 @@ def overlock_b(pretrained=None, pretrained_cfg=None, **kwargs):
 
 
 '''
-Reparameterized versions of OverLoCK models are given, 
+Reparameterized versions of OverLoCK models are given,
 which offer improved efficiency in terms of inference speed and memory consumption.
 
-Note: these variants may come at the cost of lower accuracy *during fine-tuning*, 
+Note: these variants may come at the cost of lower accuracy *during fine-tuning*,
 when compared to their original counterparts.
 
 More details about model reparameterization can be found at:

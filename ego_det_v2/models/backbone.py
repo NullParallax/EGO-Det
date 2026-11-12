@@ -106,10 +106,10 @@ class OverLoCKFPNBackbone(nn.Module):
         self.paths = paths or EGOJointPaths()
         setup_project_paths(Path(self.paths.root), add_mmdet=False)
         try:
-            from stage1.multiscale_adapter_v6 import OverLoCKMultiScaleAdapterV6
+            from ego_det_v2.backbones.overlock_adapter import OverLoCKMultiScaleAdapterV6
         except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
-                "stage1.multiscale_adapter_v6 is required for the formal EGO-Det V2 backbone"
+                "ego_det_v2.backbones.overlock_adapter is required for the formal EGO-Det V2 backbone"
             ) from exc
 
         weight_path = Path(self.paths.overlock_weights) if self.paths.overlock_weights is not None else None
