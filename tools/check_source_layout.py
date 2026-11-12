@@ -103,16 +103,11 @@ def main() -> int:
     evaluation = closure(ENTRIES["eval"])
     print(f"[INFO] Train/eval union: {len(train | evaluation)}")
 
-    fatal = []
     for module, lineno, target in sorted(missing):
-        optional_test = module == "ego_det_v2.tests.test_paper_visualization"
-        tag = "WARN" if optional_test else "ERROR"
-        print(f"[{tag}] {module}:{lineno} imports missing module {target}")
-        if not optional_test:
-            fatal.append((module, lineno, target))
+        print(f"[ERROR] {module}:{lineno} imports missing module {target}")
 
-    if fatal:
-        print(f"[FAIL] {len(fatal)} unresolved imports outside the known optional visualization test")
+    if missing:
+        print(f"[FAIL] {len(missing)} unresolved local module imports")
         return 1
     print("[PASS] Core local imports resolve statically (runtime not verified)")
     return 0
