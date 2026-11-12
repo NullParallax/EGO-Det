@@ -56,3 +56,6 @@ Thumbs.db
 # Local engineering notes and archived exploratory tests; not part of the repository
 /docs/
 /archive/
+
+# Local archived paper-run configuration (superseded by configs/egodet.yaml)
+/configs/paper_epoch12_recorded.json

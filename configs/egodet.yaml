@@ -1,0 +1,184 @@
+# EGO-Det user-editable runtime configuration.
+# All paths are absolute or relative to the repository root. `model` can specify
+# any field of ego_det_v2/configs/config.py; unknown keys raise an error.
+# Historical paper-style hyperparameters are prefilled. Resource-limited GPUs
+# should adjust model.batch_size / model.grad_accum_steps as needed for training.
+
+paths:
+  train_annotations: data/coco/raw/annotations/instances_train2017.json
+  val_annotations: data/coco/raw/annotations/instances_val2017.json
+  image_root: data/coco/images
+  overlock_weights: weights/overlock/overlock_t_in1k_224.pth
+  checkpoint: checkpoints/epoch_12.pth
+
+model:
+  # Data
+  num_classes: 80
+  train_short_sides:
+  - 480
+  - 512
+  - 544
+  - 576
+  - 608
+  train_max_size: 1024
+  val_short_side: 672
+  val_max_size: 1024
+  random_crop_prob: 0.5
+  hflip_prob: 0.5
+  pixel_mean:
+  - 0.485
+  - 0.456
+  - 0.406
+  pixel_std:
+  - 0.229
+  - 0.224
+  - 0.225
+
+  # Backbone/FPN
+  d_model: 256
+  fpn_levels:
+  - p3
+  - p4
+  - p5
+  - p6
+  fpn_strides:
+  - 8
+  - 16
+  - 32
+  - 64
+  backbone_lr: 1.0e-05
+  backbone_stem_lr: 1.0e-06
+  overlock_gradient_checkpointing: true
+  freeze_backbone: false
+
+  # Class-agnostic dense geometry
+  tower_convs: 4
+  center_sampling_radius: 1.5
+  level_scale_ranges:
+  - - 0.0
+    - 64.0
+  - - 64.0
+    - 128.0
+  - - 128.0
+    - 256.0
+  - - 256.0
+    - 100000.0
+  bank_pre_topk_per_level: 400
+  bank_min_per_level: 64
+  bank_topk_train: 1000
+  bank_topk_eval: 1500
+  assign_iou_promote_threshold: 0.5
+  dense_assignment_mode: stable_fcos
+  proposal_identity_iou_threshold: 0.5
+  assign_ensure_min_one_positive: false
+  efficiency_mode: optimized
+  efficiency_ablation_level: 6
+
+  # Semantic support
+  sem_convs: 2
+  token_levels:
+  - p5
+  - p6
+  roi_size: 7
+  semantic_global_attention: true
+  semantic_regional_retrieval: true
+
+  # Slots/readout
+  num_slots: 300
+  slot_rounds: 3
+  evidence_per_slot: 48
+  seed_diversity_iou: 0.7
+  level_embed_dim: 16
+  seed_selection_mode: diversity
+  slot_competition_enabled: true
+  readout_mode: boundary
+  readout_dustbin_gating: true
+  readout_bounded_residual: true
+
+  # Hypothesis denoising
+  hdn_max_pairs: 100
+  hdn_pos_box_noise: 0.4
+  hdn_neg_box_noise:
+  - 0.4
+  - 0.8
+  hdn_label_noise: 0.2
+
+  # Existence/score
+  exist_iou_gate: 0.5
+  gamma_init: 1.0
+  gamma_range:
+  - 0.25
+  - 2.0
+
+  # Matching and loss weights
+  set_cost_class: 2.0
+  set_cost_bbox: 5.0
+  set_cost_giou: 2.0
+  w_dense_obj: 1.0
+  w_dense_giou: 2.0
+  w_dense_quality: 1.0
+  w_cls: 2.0
+  w_l1: 5.0
+  w_giou: 2.0
+  w_quality: 1.0
+  w_exist: 1.0
+  w_ownership: 1.0
+  w_dustbin: 0.1
+  w_dup: 0.25
+  w_gain: 0.25
+  dup_margin: 0.2
+  ownership_warmup_epochs: 1
+  dup_gain_start_epoch: 2
+
+  # Optimisation
+  lr: 0.0001
+  weight_decay: 0.0001
+  clip_max_norm: 0.1
+  batch_size: 8
+  grad_accum_steps: 2
+  epochs: 12
+  lr_drop_epoch: 11
+  warmup_steps: 1000
+  amp: true
+  amp_dtype: bf16
+  num_workers: 8
+  use_ema: false
+  ema_decay: 0.9998
+  seed: 3407
+
+  # Evaluation/logging
+  quick_eval_every_steps: 2500
+  full_eval_last_epoch_only: false
+  log_every_steps: 25
+  oracle_monitor_every_optimizer_steps: -1
+  ckpt_every_steps: 2500
+  eval_nms_diagnostic: false
+  output_dir: outputs/ego_det_v2/e2e_run1
+  overfit_min_matched_accuracy: 0.9
+  overfit_min_matched_iou: 0.7
+  overfit_min_matched_recall: 0.9
+
+training:
+  resume: null
+  device: null
+  smoke_steps: 0
+
+# These are DataLoader and evaluation-runtime options. The architecture and
+# learned model settings for evaluation are restored from checkpoint['config'].
+evaluation:
+  batch_size: 1
+  num_workers: 0
+  subset_size: 0                # 0 = full val2017
+  device: null
+  use_ema: false                # paper result uses the raw checkpoint model
+  predictions_json: outputs/eval/predictions.json
+  metrics_json: outputs/eval/metrics.json
+  model_overrides: {}           # optional evaluation-only parameters, see README
+
+demo:
+  device: null
+  output: outputs/demo_detection.jpg
+  short_side: 384
+  max_size: 640
+  score_thr: 0.3
+  topk: 30

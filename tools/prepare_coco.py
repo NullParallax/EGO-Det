@@ -37,13 +37,22 @@ def link(source: Path, dest: Path, *, dry_run: bool) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Link original COCO 2017 images/annotations into EGO-Det data layout")
+    parser.add_argument("--config", type=Path, help="YAML configuration (default: configs/egodet.yaml)")
     parser.add_argument("--source", required=True, type=Path, help="Existing COCO dataset root")
-    parser.add_argument("--destination", type=Path, default=Path("data/coco"))
+    parser.add_argument("--destination", type=Path, default=None)
     parser.add_argument("--split", choices=("train", "val", "all"), default="all")
     parser.add_argument("--dry-run", action="store_true", help="Check without writing any links")
     args = parser.parse_args()
     source = args.source.expanduser().resolve(strict=True)
-    destination = args.destination.expanduser().absolute()
+    from ego_det_v2.configs.project import load_settings, resolve_root, resolve_path
+    settings = load_settings(args.config)
+    root = resolve_root()
+    if args.destination is not None:
+        destination = resolve_path(args.destination, root)
+    else:
+        # Derive data root from the configured image directory (data/coco/images).
+        images = resolve_path(settings["paths"].get("image_root", "data/coco/images"), root)
+        destination = images.parent
     splits = ("train2017", "val2017") if args.split == "all" else (f"{args.split}2017",)
     for split in splits:
         for annotations, dest in (

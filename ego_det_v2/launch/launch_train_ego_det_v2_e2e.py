@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import replace
+from pathlib import Path
 from typing import Optional, Sequence
 
 from ..configs.config import EgoDetV2Config
+from ..configs.project import (
+    load_settings, model_from_settings, path_from_settings, resolve_root,
+)
+from dataclasses import replace as dataclass_replace
 from ..engine.train_loop import fit, set_runtime_defaults
 from ..losses.criterion import EgoDetV2Criterion
 from ..models.ego_det_v2 import EgoDetV2
@@ -13,6 +18,7 @@ from ._common import choose_device, make_loader, print_config, resolve_paths
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Formal EGO-Det V2 end-to-end training")
+    parser.add_argument("--config", help="YAML configuration (default: configs/egodet.yaml)")
     parser.add_argument("--project-root")
     parser.add_argument("--train-annotations")
     parser.add_argument("--val-annotations")
@@ -36,7 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--bank-topk", type=int)
     parser.add_argument("--evidence-per-slot", type=int)
-    parser.add_argument("--use-ema", action="store_true")
+    ema_group = parser.add_mutually_exclusive_group()
+    ema_group.add_argument("--use-ema", dest="use_ema", action="store_true", default=None)
+    ema_group.add_argument("--no-ema", dest="use_ema", action="store_false")
     checkpoint_group = parser.add_mutually_exclusive_group()
     checkpoint_group.add_argument(
         "--overlock-checkpointing",
@@ -50,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.set_defaults(overlock_checkpointing=None)
     parser.add_argument("--device")
-    parser.add_argument("--smoke-steps", type=int, default=0)
+    parser.add_argument("--smoke-steps", type=int, default=None)
     parser.add_argument(
         "--no-progress",
         action="store_true",
@@ -79,7 +87,9 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    config = EgoDetV2Config()
+    settings = load_settings(args.config)
+    config = model_from_settings(settings)
+    root = resolve_root(args.project_root)
     updates = {}
     for argument, field in (
         ("batch_size", "batch_size"),
@@ -104,34 +114,49 @@ def main() -> None:
         updates["oracle_monitor_every_optimizer_steps"] = int(
             args.oracle_monitor_every_optimizer_steps
         )
-    if args.use_ema:
-        updates["use_ema"] = True
+    if args.use_ema is not None:
+        updates["use_ema"] = bool(args.use_ema)
     if args.overlock_checkpointing is not None:
         updates["overlock_gradient_checkpointing"] = bool(
             args.overlock_checkpointing
         )
     config = replace(config, **updates)
-    print_config(config)
     set_runtime_defaults(config.seed)
 
-    paths = resolve_paths(args.project_root)
+    paths = resolve_paths(str(root))
+    pretrained = path_from_settings(settings, "overlock_weights", root)
+    if pretrained is not None:
+        paths = dataclass_replace(paths, overlock_weights=pretrained)
+    train_annotation = path_from_settings(settings, "train_annotations", root, args.train_annotations)
+    val_annotation = path_from_settings(settings, "val_annotations", root, args.val_annotations)
+    images = path_from_settings(settings, "image_root", root, args.image_root)
+    # Resolve the portable YAML run destination against the chosen project root.
+    if args.output_dir is None:
+        output = Path(config.output_dir).expanduser()
+        config = replace(config, output_dir=str((root / output).resolve() if not output.is_absolute() else output))
+    print_config(config)
     train_loader, _ = make_loader(
         "train",
         paths=paths,
         config=config,
-        annotation_file=args.train_annotations,
-        image_root=args.image_root,
+        annotation_file=train_annotation,
+        image_root=images,
         shuffle=True,
     )
     val_loader, val_dataset = make_loader(
         "val",
         paths=paths,
         config=config,
-        annotation_file=args.val_annotations,
-        image_root=args.image_root,
+        annotation_file=val_annotation,
+        image_root=images,
         shuffle=False,
     )
-    device = choose_device(args.device)
+    training = settings["training"]
+    device = choose_device(args.device or training.get("device"))
+    resume = args.resume if args.resume is not None else training.get("resume")
+    if resume:
+        resume = str((root / resume).resolve()) if not Path(resume).is_absolute() else str(resume)
+    smoke_steps = args.smoke_steps if args.smoke_steps is not None else int(training.get("smoke_steps", 0))
     model = EgoDetV2(config, paths=paths).to(device)
     criterion = EgoDetV2Criterion(config).to(device)
     fit(
@@ -142,8 +167,8 @@ def main() -> None:
         device=device,
         val_loader=val_loader,
         val_dataset=val_dataset,
-        resume=args.resume,
-        smoke_steps=args.smoke_steps,
+        resume=resume,
+        smoke_steps=smoke_steps,
         show_progress=not args.no_progress,
     )
 
