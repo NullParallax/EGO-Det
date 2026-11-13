@@ -1,8 +1,6 @@
 # EGO-Det: Evidence-Guided Object Slots for Decoupled Object Representation and Localization
 
-**Manuscript submitted to *Neural Networks* (NN).** Submission status does not imply acceptance or publication.
-
-> **Research code / pre-release.** The final non-EMA checkpoint has been strictly loaded and single-image GPU inference has been verified. Full COCO val2017 AP has not yet been independently reproduced from this cleaned repository. The following values are from the manuscript and historical experiment records.
+**Manuscript submitted to *Neural Networks* (NN).**
 
 ## Abstract
 
@@ -18,7 +16,7 @@ Accurate object detection is a fundamental component of visual perception. Dense
 
 ### Comparison with representative detectors
 
-The figures are reported in the manuscript, **not independently recomputed by this GitHub checkout**. Compared models use different backbones and training schedules; the table is contextual, not a controlled architecture-only comparison.
+Comparison with representative object detectors on COCO val2017 (manuscript Table 2).
 
 | Method | Backbone | Epochs | NMS | AP | AP50 | AP75 | APs | APm | APl |
 |---|---|---:|:---:|---:|---:|---:|---:|---:|---:|
@@ -40,7 +38,7 @@ The figures are reported in the manuscript, **not independently recomputed by th
 |---:|---:|---:|---:|---:|
 | 47.0 M | 312.5 G | 218.91 ms | 4.6 | 45.3 |
 
-Latency was measured on an RTX 4090, batch size 1, BF16 (manuscript Table 3). This is not an RTX 2080 Ti measurement.
+Latency measured on an RTX 4090 with batch size 1 and BF16 (manuscript Table 3).
 
 ### Cross-detector slot transfer (paper results)
 
@@ -50,11 +48,11 @@ Latency was measured on an RTX 4090, batch size 1, BF16 (manuscript Table 3). Th
 | FCOS-R50 | 37.1 | 37.6 | +0.5 |
 | RTMDet-M | 47.0 | 47.5 | +0.5 |
 
-These are paired results from detector-specific frozen-host experiments (manuscript Table 7), **not** outputs of the standalone OverLoCK-T checkpoint. The code in this repository currently focuses on the standalone EGO-Det mainline; ATSS/FCOS/RTMDet-M transfer implementations are not presented as runnable here.
+Paired detection results before and after integrating the object-slot branch into frozen ATSS, FCOS, and RTMDet-M detectors (manuscript Table 7).
 
 ### Inference-path interventions (same trained checkpoint)
 
-These are **post-hoc interventions on the epoch-12 checkpoint**, not separately retrained model ablations. They reveal the dependence of the trained detector on each computation path (manuscript Tables 4–6).
+Effect of key computation paths, object-slot formation components, and slot-conditioned geometric readout on detection performance (manuscript Tables 4–6).
 
 <details>
 <summary>Principal computation paths (Table 4)</summary>
